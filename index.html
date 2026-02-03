@@ -2,7 +2,6 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <!-- ยังคง viewport-fit=cover ไว้เพื่อการแสดงผลที่ดีบน iPhone -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Freshket: Peace of Mind Delivery</title>
     
@@ -20,8 +19,8 @@
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* ป้องกัน Scroll */
-            position: fixed; /* ล็อคหน้าจอไม่ให้ขยับเวลาลากบน iOS */
+            overflow: hidden;
+            position: fixed;
         }
         body {
             font-family: 'Kanit', sans-serif;
@@ -29,7 +28,6 @@
             touch-action: none; 
             user-select: none;
             -webkit-user-select: none;
-            /* ป้องกันการกดค้างแล้วขึ้นเมนูบนมือถือ */
             -webkit-touch-callout: none;
         }
         canvas {
@@ -38,7 +36,6 @@
             width: 100%;
             height: 100%;
         }
-        /* จัดการ Safe Area สำหรับ iPhone X ขึ้นไป */
         #ui-layer {
             padding-left: env(safe-area-inset-left);
             padding-right: env(safe-area-inset-right);
@@ -77,7 +74,6 @@
             animation: shake 0.2s infinite;
         }
 
-        /* --- ส่วนแจ้งเตือนให้หมุนจอ (Rotate Warning) --- */
         #rotate-warning {
             display: none;
             position: fixed;
@@ -91,7 +87,6 @@
             text-align: center;
         }
 
-        /* แสดงหน้าแจ้งเตือนเมื่อเป็นแนวตั้ง (Portrait) */
         @media screen and (orientation: portrait) {
             #rotate-warning { display: flex; }
             #ui-layer, canvas { display: none !important; }
@@ -100,7 +95,6 @@
 </head>
 <body>
 
-    <!-- หน้าจอแจ้งเตือนให้หมุนจอ -->
     <div id="rotate-warning">
         <div class="text-6xl mb-4">📱↻</div>
         <h2 class="text-2xl font-black uppercase">Please Rotate Your Device</h2>
@@ -109,19 +103,23 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="ui-layer" class="absolute inset-0 pointer-events-none p-4 md:p-6 flex flex-col justify-between">
-        <!-- Header: Score & Time -->
+    <!-- UI Layer: ใช้ Padding เล็กน้อย p-1 -->
+    <div id="ui-layer" class="absolute inset-0 pointer-events-none p-1 md:p-6 flex flex-col justify-between">
+        <!-- Header: Score & Time (ปรับให้เล็กจิ๋วสำหรับมือถือ) -->
         <div class="flex justify-between items-start">
-            <div id="scoreBox" class="glass-panel p-2 px-4 md:p-3 md:px-6 rounded-2xl shadow-lg">
-                <p class="text-[10px] uppercase tracking-[0.1em] text-[#008065] font-bold opacity-70 text-center">Score</p>
-                <div id="scoreText" class="text-2xl md:text-3xl font-black text-slate-800 leading-none text-center">0</div>
+            <!-- Score Box: ตัวเลข text-sm, หัวข้อ text-[5px] -->
+            <div id="scoreBox" class="glass-panel p-0.5 px-2 md:p-3 md:px-6 rounded-lg md:rounded-2xl shadow-lg">
+                <p class="text-[5px] md:text-[10px] uppercase tracking-[0.1em] text-[#008065] font-bold opacity-70 text-center">Score</p>
+                <div id="scoreText" class="text-sm md:text-3xl font-black text-slate-800 leading-none text-center">0</div>
             </div>
-            <div class="flex flex-col items-end gap-2 text-right">
-                <div class="glass-panel p-2 px-4 md:p-3 md:px-6 rounded-2xl shadow-lg">
-                    <p class="text-[10px] uppercase tracking-[0.1em] text-[#FF6600] font-bold opacity-70">Time</p>
-                    <span id="timeText" class="text-2xl md:text-3xl font-black text-slate-800 leading-none">30</span>
+            <div class="flex flex-col items-end gap-1 md:gap-2 text-right">
+                <!-- Time Box: ตัวเลข text-sm, หัวข้อ text-[5px] -->
+                <div class="glass-panel p-0.5 px-2 md:p-3 md:px-6 rounded-lg md:rounded-2xl shadow-lg">
+                    <p class="text-[5px] md:text-[10px] uppercase tracking-[0.1em] text-[#FF6600] font-bold opacity-70">Time</p>
+                    <span id="timeText" class="text-sm md:text-3xl font-black text-slate-800 leading-none">30</span>
                 </div>
-                <button onclick="location.reload()" class="pointer-events-auto text-[10px] bg-white/20 hover:bg-white/40 text-white px-3 py-1.5 rounded-full border border-white/30 transition-all font-bold tracking-wider">
+                <!-- Restart Button: text-[5px] เล็กจิ๋ว -->
+                <button onclick="location.reload()" class="pointer-events-auto text-[5px] md:text-[10px] bg-white/20 hover:bg-white/40 text-white px-1.5 py-0.5 md:px-3 md:py-1.5 rounded-full border border-white/30 transition-all font-bold tracking-wider">
                     RESTART ↻
                 </button>
             </div>
@@ -129,71 +127,71 @@
 
         <!-- Start Screen -->
         <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-[#008065]/95 pointer-events-auto p-4 text-center overflow-y-auto">
-            <div class="bg-white p-3 rounded-3xl mb-3 shadow-2xl floating shrink-0">
-                 <img src="https://i.postimg.cc/gkVwzGf8/FRESHKET_LOGO-01_(1).png" alt="Freshket Logo" class="h-8 md:h-12 w-auto object-contain">
+            <div class="bg-white p-1.5 md:p-3 rounded-xl md:rounded-3xl mb-1.5 md:mb-3 shadow-2xl floating shrink-0">
+                 <img src="https://i.postimg.cc/gkVwzGf8/FRESHKET_LOGO-01_(1).png" alt="Freshket Logo" class="h-5 md:h-12 w-auto object-contain">
             </div>
             
-            <h1 class="text-lg md:text-3xl font-black text-white mb-2 tracking-tight uppercase leading-tight shrink-0">Your Trusted Solution<br>for Food Supplies</h1>
-            <p class="text-white/70 mb-4 text-[10px] md:text-[11px] uppercase tracking-[0.25em] font-medium shrink-0">คัดสรรของสด ส่งความสบายใจให้ร้านอาหาร</p>
+            <h1 class="text-sm md:text-3xl font-black text-white mb-0.5 md:mb-2 tracking-tight uppercase leading-tight shrink-0">Your Trusted Solution<br>for Food Supplies</h1>
+            <p class="text-white/70 mb-2 md:mb-4 text-[7px] md:text-[11px] uppercase tracking-[0.25em] font-medium shrink-0">คัดสรรของสด ส่งความสบายใจให้ร้านอาหาร</p>
             
             <!-- Cards Container -->
-            <div class="flex flex-row gap-3 w-full max-w-4xl mb-6 items-stretch justify-center">
+            <div class="flex flex-row gap-2 md:gap-3 w-full max-w-4xl mb-3 md:mb-6 items-stretch justify-center h-[140px] md:h-auto">
                 
                 <!-- Card 1: Rules -->
-                <div class="bg-white rounded-[24px] p-3 md:p-6 shadow-2xl flex-1 border-t-8 border-[#FF6600] flex flex-col max-w-[300px] md:max-w-none">
-                    <h3 class="text-[#008065] font-black text-sm md:text-xl mb-2 md:mb-5 uppercase tracking-widest border-b-2 border-gray-100 pb-2 flex items-center justify-center gap-2">
+                <div class="bg-white rounded-[16px] md:rounded-[24px] p-1.5 md:p-6 shadow-2xl flex-1 border-t-2 md:border-t-8 border-[#FF6600] flex flex-col max-w-[260px] md:max-w-none">
+                    <h3 class="text-[#008065] font-black text-[10px] md:text-xl mb-1 md:mb-5 uppercase tracking-widest border-b border-gray-100 pb-0.5 md:pb-2 flex items-center justify-center gap-1 md:gap-2">
                         <span>📦</span> กติกา
                     </h3>
-                    <div class="grid grid-cols-3 gap-2 flex-1">
-                        <div class="bg-gray-50 p-2 rounded-xl border border-gray-100 flex flex-col justify-center items-center h-full">
-                            <span class="text-xl md:text-3xl block mb-1">🥬🥩</span>
-                            <p class="text-[8px] md:text-[14px] text-gray-400 font-bold uppercase mb-0">สด</p>
-                            <p class="text-[#008065] font-black text-sm md:text-2xl">+10</p>
+                    <div class="grid grid-cols-3 gap-1 md:gap-2 flex-1">
+                        <div class="bg-gray-50 p-0.5 md:p-2 rounded-md md:rounded-xl border border-gray-100 flex flex-col justify-center items-center h-full">
+                            <span class="text-base md:text-3xl block mb-0 md:mb-1">🥬🥩</span>
+                            <p class="text-[6px] md:text-[14px] text-gray-400 font-bold uppercase mb-0">สด</p>
+                            <p class="text-[#008065] font-black text-[10px] md:text-2xl">+10</p>
                         </div>
-                        <div class="bg-yellow-50 p-2 rounded-xl border border-yellow-100 flex flex-col justify-center items-center h-full">
-                            <span class="text-xl md:text-3xl block mb-1">⭐</span>
-                            <p class="text-[8px] md:text-[14px] text-yellow-600 font-bold uppercase mb-0">ยักษ์</p>
-                            <p class="text-yellow-500 font-black text-sm md:text-2xl">+50</p>
+                        <div class="bg-yellow-50 p-0.5 md:p-2 rounded-md md:rounded-xl border border-yellow-100 flex flex-col justify-center items-center h-full">
+                            <span class="text-base md:text-3xl block mb-0 md:mb-1">⭐</span>
+                            <p class="text-[6px] md:text-[14px] text-yellow-600 font-bold uppercase mb-0">ยักษ์</p>
+                            <p class="text-yellow-500 font-black text-[10px] md:text-2xl">+50</p>
                         </div>
-                        <div class="bg-red-50 p-2 rounded-xl border border-red-100 flex flex-col justify-center items-center h-full">
-                            <span class="text-xl md:text-3xl block mb-1">💩🐛</span>
-                            <p class="text-[8px] md:text-[14px] text-red-400 font-bold uppercase mb-0">ห้าม</p>
-                            <p class="text-red-500 font-black text-sm md:text-2xl">-20</p>
+                        <div class="bg-red-50 p-0.5 md:p-2 rounded-md md:rounded-xl border border-red-100 flex flex-col justify-center items-center h-full">
+                            <span class="text-base md:text-3xl block mb-0 md:mb-1">💩🐛</span>
+                            <p class="text-[6px] md:text-[14px] text-red-400 font-bold uppercase mb-0">ห้าม</p>
+                            <p class="text-red-500 font-black text-[10px] md:text-2xl">-20</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Card 2: Rank -->
-                <div class="bg-white rounded-[24px] p-3 md:p-6 shadow-2xl flex-1 border-t-8 border-[#F5CE3E] flex-col hidden md:flex">
-                    <h3 class="text-[#008065] font-black text-sm md:text-xl mb-2 md:mb-5 uppercase tracking-widest border-b-2 border-gray-100 pb-2 flex items-center justify-center gap-2">
-                        <span>🏆</span> เกณฑ์คะแนนฉายา
+                <div class="bg-white rounded-[16px] md:rounded-[24px] p-1.5 md:p-6 shadow-2xl flex-1 border-t-2 md:border-t-8 border-[#F5CE3E] flex-col hidden md:flex">
+                    <h3 class="text-[#008065] font-black text-[10px] md:text-xl mb-1 md:mb-5 uppercase tracking-widest border-b border-gray-100 pb-0.5 md:pb-2 flex items-center justify-center gap-1 md:gap-2">
+                        <span>🏆</span> เกณฑ์คะแนน
                     </h3>
-                    <div class="space-y-2 flex-1 text-[10px] md:text-base"> 
-                        <div class="flex justify-between items-center bg-gray-50 p-2.5 px-4 rounded-xl text-sm md:text-lg border border-gray-100">
-                            <span class="font-bold text-gray-600">🐣 มือใหม่หัดสั่ง</span>
-                            <span class="font-black text-[#008065]">0 - 150</span>
+                    <div class="space-y-1 md:space-y-2 flex-1 text-[7px] md:text-base flex flex-col justify-center"> 
+                        <div class="flex justify-between items-center bg-gray-50 p-1 md:p-2.5 px-2 md:px-4 rounded-md md:rounded-xl text-[8px] md:text-lg border border-gray-100">
+                            <span class="font-bold text-gray-600">🐣 มือใหม่</span>
+                            <span class="font-black text-[#008065]">0-150</span>
                         </div>
-                        <div class="flex justify-between items-center bg-green-50 p-2.5 px-4 rounded-xl text-sm md:text-lg border border-green-100">
-                            <span class="font-bold text-[#008065]">🥦 เชฟมือโปร</span>
-                            <span class="font-black text-[#008065]">151 - 350</span>
+                        <div class="flex justify-between items-center bg-green-50 p-1 md:p-2.5 px-2 md:px-4 rounded-md md:rounded-xl text-[8px] md:text-lg border border-green-100">
+                            <span class="font-bold text-[#008065]">🥦 มือโปร</span>
+                            <span class="font-black text-[#008065]">151-350</span>
                         </div>
-                        <div class="flex justify-between items-center bg-orange-50 p-2.5 px-4 rounded-xl text-sm md:text-lg border border-orange-100">
-                            <span class="font-bold text-[#FF6600]">✨ VIBE ARCHITECT</span>
-                            <span class="font-black text-[#FF6600]">351 - 550</span>
+                        <div class="flex justify-between items-center bg-orange-50 p-1 md:p-2.5 px-2 md:px-4 rounded-md md:rounded-xl text-[8px] md:text-lg border border-orange-100">
+                            <span class="font-bold text-[#FF6600]">✨ VIBE</span>
+                            <span class="font-black text-[#FF6600]">351-550</span>
                         </div>
-                        <div class="flex justify-between items-center bg-yellow-50 p-2.5 px-4 rounded-xl text-sm md:text-lg border border-yellow-200">
-                            <span class="font-bold text-yellow-700">🥇 LEGENDARY PARTNER</span>
+                        <div class="flex justify-between items-center bg-yellow-50 p-1 md:p-2.5 px-2 md:px-4 rounded-md md:rounded-xl text-[8px] md:text-lg border border-yellow-200">
+                            <span class="font-bold text-yellow-700">🥇 LEGEND</span>
                             <span class="font-black text-yellow-700">551+</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <button onclick="startGame()" class="bg-[#FF6600] hover:bg-[#e55c00] text-white text-lg md:text-xl font-black px-12 py-3 md:px-16 md:py-5 rounded-full shadow-[0_6px_0_rgb(180,70,0)] active:shadow-none active:translate-y-[4px] transition-all mb-4 shrink-0 tracking-wider">
+            <button onclick="startGame()" class="bg-[#FF6600] hover:bg-[#e55c00] text-white text-sm md:text-xl font-black px-6 py-1.5 md:px-12 md:py-3 rounded-full shadow-[0_3px_0_rgb(180,70,0)] md:shadow-[0_6px_0_rgb(180,70,0)] active:shadow-none active:translate-y-[4px] transition-all mb-2 md:mb-4 shrink-0 tracking-wider">
                 START MISSION!
             </button>
             
-            <div class="flex gap-4 md:gap-8 text-white/40 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] shrink-0">
+            <div class="flex gap-4 md:gap-8 text-white/40 text-[7px] md:text-[10px] font-bold uppercase tracking-[0.2em] shrink-0">
                 <span>📱 Drag / Touch</span>
                 <span>💻 Mouse / Keys</span>
             </div>
@@ -201,22 +199,22 @@
 
         <!-- Game Over Screen -->
         <div id="game-over" class="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-md pointer-events-auto hidden">
-            <div id="over-card" class="glass-panel p-6 md:p-10 rounded-[40px] text-center w-[90%] max-w-md shadow-2xl border-4 border-[#F5CE3E]">
-                <div id="game-over-icon" class="text-4xl md:text-5xl mb-2 md:mb-4">🏆</div>
-                <h2 id="status-title" class="text-xl md:text-2xl font-black text-[#008065] mb-1 uppercase tracking-tight leading-tight">Your Trusted Delivery<br>Success!</h2>
+            <div id="over-card" class="glass-panel p-4 md:p-10 rounded-[24px] md:rounded-[40px] text-center w-[90%] max-w-md shadow-2xl border-4 border-[#F5CE3E]">
+                <div id="game-over-icon" class="text-3xl md:text-5xl mb-1 md:mb-4">🏆</div>
+                <h2 id="status-title" class="text-lg md:text-2xl font-black text-[#008065] mb-0.5 md:mb-1 uppercase tracking-tight leading-tight">Your Trusted Delivery<br>Success!</h2>
                 
-                <div class="relative inline-block my-4 md:my-8">
-                    <div class="text-6xl md:text-8xl font-black text-[#FF6600] tracking-tighter" id="finalScore">0</div>
-                    <div class="absolute -top-2 -right-6 rotate-12 bg-[#F5CE3E] text-black text-[10px] font-black px-2 py-1 rounded">PTS</div>
+                <div class="relative inline-block my-2 md:my-8">
+                    <div class="text-5xl md:text-8xl font-black text-[#FF6600] tracking-tighter" id="finalScore">0</div>
+                    <div class="absolute -top-1 md:-top-2 -right-4 md:-right-6 rotate-12 bg-[#F5CE3E] text-black text-[6px] md:text-[10px] font-black px-1.5 md:px-2 py-0.5 md:py-1 rounded">PTS</div>
                 </div>
 
-                <div class="bg-white/50 p-4 md:p-5 rounded-3xl mb-6 md:mb-8 border-2 border-dashed border-slate-300">
-                    <p class="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">ฉายาของคุณคือ</p>
-                    <p id="rankText" class="font-black text-lg md:text-xl text-[#008065] tracking-tight">เชฟมือโปร!</p>
+                <div class="bg-white/50 p-2 md:p-5 rounded-xl md:rounded-3xl mb-3 md:mb-8 border-2 border-dashed border-slate-300">
+                    <p class="text-[7px] md:text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-0.5 md:mb-1">ฉายาของคุณคือ</p>
+                    <p id="rankText" class="font-black text-base md:text-xl text-[#008065] tracking-tight">เชฟมือโปร!</p>
                 </div>
 
-                <button onclick="location.reload()" class="w-full bg-[#FF6600] text-white font-black py-4 md:py-5 rounded-2xl shadow-xl hover:bg-[#e55c00] transition-colors flex items-center justify-center gap-2 tracking-wide">
-                    <span class="text-xl md:text-2xl">↻</span> RESTART MISSION
+                <button onclick="location.reload()" class="w-full bg-[#FF6600] text-white font-black py-2.5 md:py-5 rounded-lg md:rounded-2xl shadow-xl hover:bg-[#e55c00] transition-colors flex items-center justify-center gap-1.5 md:gap-2 tracking-wide">
+                    <span class="text-base md:text-2xl">↻</span> RESTART MISSION
                 </button>
             </div>
         </div>
@@ -268,7 +266,6 @@
         for (let i = 0; i < cloudCount; i++) {
             clouds.push({
                 x: (canvas.width / cloudCount) * i + (Math.random() * 50),
-                // ปรับ baseY เพิ่มขึ้น (จากเดิม +20 เป็น +70) เพื่อดันเมฆลงมาข้างล่าง
                 baseY: Math.random() * 40 + 70, 
                 y: 0,
                 w: Math.random() * 80 + 100,
@@ -293,13 +290,10 @@
     }
 
     function resize() {
-        // ใช้ innerWidth/Height เพื่อให้เต็มจอ browser จริงๆ (รวมพื้นที่ address bar ที่อาจซ่อนอยู่)
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        
-        // ปรับตำแหน่งตัวละครให้สัมพันธ์กับความสูงจอ (Responsive)
         player.y = canvas.height - 140; 
-        if (canvas.height < 500) player.y = canvas.height - 100; // ปรับสำหรับมือถือแนวนอนจอเล็ก
+        if (canvas.height < 500) player.y = canvas.height - 100; 
         
         player.x = (canvas.width / 2) - (player.width / 2);
         player.targetX = player.x; 
@@ -307,17 +301,13 @@
         initClouds();
     }
     
-    // ฟังเหตุการณ์ resize และ orientationchange
     window.addEventListener('resize', resize);
     window.addEventListener('orientationchange', () => {
-        // รอแป๊บนึงเพื่อให้ UI ของ browser ปรับเสร็จก่อนคำนวณขนาดใหม่
         setTimeout(resize, 200);
     });
     
     resize();
 
-    // --- Input Handling: Touch & Mouse ---
-    
     function handleInputStart(clientX) {
         isDragging = true;
         movePlayer(clientX);
@@ -333,9 +323,7 @@
         isDragging = false;
     }
 
-    // Touch Events
     canvas.addEventListener('touchstart', (e) => {
-        // Prevent default เพื่อไม่ให้ browser เลื่อนหน้าจอ (Elastic Scrolling)
         e.preventDefault(); 
         handleInputStart(e.touches[0].clientX);
     }, { passive: false });
@@ -347,12 +335,10 @@
 
     canvas.addEventListener('touchend', handleInputEnd);
 
-    // Mouse Events
     canvas.addEventListener('mousedown', (e) => handleInputStart(e.clientX));
-    window.addEventListener('mousemove', (e) => handleInputMove(e.clientX)); // Listen on window for smoother drag out
+    window.addEventListener('mousemove', (e) => handleInputMove(e.clientX));
     window.addEventListener('mouseup', handleInputEnd);
     
-    // Keyboard Events
     window.addEventListener('keydown', (e) => { if (keys.hasOwnProperty(e.code)) keys[e.code] = true; });
     window.addEventListener('keyup', (e) => { if (keys.hasOwnProperty(e.code)) keys[e.code] = false; });
 
@@ -396,20 +382,14 @@
         const rand = Math.random();
         let type, isGood, isBonus = false, size = 45;
         
-        // สุ่มประเภทไอเทม
         if (rand < 0.08) { type = goodItems[Math.floor(Math.random() * goodItems.length)]; isGood = true; isBonus = true; size = 95; }
         else if (rand < 0.82) { type = goodItems[Math.floor(Math.random() * goodItems.length)]; isGood = true; }
         else { type = badItems[Math.floor(Math.random() * badItems.length)]; isGood = false; }
 
-        // --- ปรับปรุงตรรกะความเร็ว (Speed Logic) ---
         let itemSpeed;
         if (isBonus) {
-             // โบนัส (+50) : ความเร็วคงที่เพื่อให้กะจังหวะได้รับง่ายขึ้น (Smooth)
              itemSpeed = 6.0; 
         } else {
-             // ปกติ (+10) และ ของเสีย (-20) : ลดความแกว่งของสุ่ม (Random) ลงเพื่อให้ของตกลงมาเป็นระเบียบขึ้น (Smooth Flow)
-             // ปรับเป็นช่วง 3.5 ถึง 5.5 (จากเดิมที่สุ่มกว้างมาก)
-             // เพิ่มความเร็วขึ้นอีกประมาณ 3% -> Base 3.6 + Range 2.1
              itemSpeed = 3.6 + Math.random() * 2.1; 
         }
 
@@ -425,12 +405,10 @@
             rotSpeed: (Math.random() - 0.5) * 0.12
         });
         
-        // Spawn rate
         setTimeout(spawnItem, Math.max(180, 720 - (score * 1.6)));
     }
 
     function startGame() {
-        // เอาคำสั่ง requestFullscreen ออกตามที่ต้องการ
         startScreen.classList.add('hidden');
         gameActive = true;
         score = 0;
@@ -456,15 +434,12 @@
         clouds.forEach(drawCloud);
 
         if (gameActive) {
-            // Keyboard control logic
             if (keys.ArrowLeft) player.targetX -= player.speed;
             if (keys.ArrowRight) player.targetX += player.speed;
             
-            // Boundary checks
             if (player.targetX < 0) player.targetX = 0;
             if (player.targetX > canvas.width - player.width) player.targetX = canvas.width - player.width;
 
-            // Lerp movement
             player.x += (player.targetX - player.x) * 0.2;
             player.tilt = (player.x - player.lastX) * 0.04;
             
@@ -473,7 +448,6 @@
 
             player.lastX = player.x;
 
-            // Items logic
             for (let i = items.length - 1; i >= 0; i--) {
                 let item = items[i];
                 item.y += item.speed;
@@ -488,7 +462,6 @@
                 ctx.fillText(item.text, 0, 0);
                 ctx.restore();
 
-                // Hit detection
                 if (item.y + item.size > player.y && item.y < player.y + player.height && item.x + item.size > player.x && item.x < player.x + player.width) {
                     if (item.isGood) {
                         let pts = item.isBonus ? 50 : 10;
@@ -510,7 +483,6 @@
                 if (item.y > canvas.height) items.splice(i, 1);
             }
 
-            // Draw Player
             ctx.save();
             ctx.translate(player.x + player.width/2, player.y + player.height/2);
             ctx.rotate(player.tilt);
@@ -526,7 +498,6 @@
             ctx.restore();
         }
 
-        // Particles
         for (let i = particles.length - 1; i >= 0; i--) {
             let p = particles[i];
             p.x += p.vx; p.y += p.vy; p.life -= 0.025;
@@ -536,7 +507,6 @@
             ctx.beginPath(); ctx.arc(p.x, p.y, 4 * p.life, 0, Math.PI*2); ctx.fill();
         }
 
-        // Fireworks
         for (let i = fireworks.length - 1; i >= 0; i--) {
             let f = fireworks[i];
             f.x += f.vx; f.y += f.vy; f.vy += 0.05; f.life -= 0.015;
@@ -546,7 +516,6 @@
             ctx.beginPath(); ctx.arc(f.x, f.y, 3 * f.life, 0, Math.PI*2); ctx.fill();
         }
 
-        // Floating Text
         for (let i = floatingTexts.length - 1; i >= 0; i--) {
             let f = floatingTexts[i];
             f.y += f.vy; f.life -= 0.02;
