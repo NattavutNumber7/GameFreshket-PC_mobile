@@ -2,7 +2,8 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- เพิ่ม viewport-fit=cover เพื่อให้เต็มจอบน iPhone รุ่นที่มีติ่ง (Notch) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Freshket: Peace of Mind Delivery</title>
     
     <meta property="og:title" content="Freshket: Peace of Mind Delivery Game">
@@ -14,20 +15,37 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* ป้องกัน Scroll */
+            position: fixed; /* ล็อคหน้าจอไม่ให้ขยับเวลาลากบน iOS */
+        }
         body {
             font-family: 'Kanit', sans-serif;
-            margin: 0;
-            overflow: hidden;
             background-color: #F3EAE3;
-            /* ป้องกันการแตะซ้ำ, การซูม และการเลื่อนหน้าจอโดยไม่ตั้งใจ */
             touch-action: none; 
             user-select: none;
             -webkit-user-select: none;
+            /* ป้องกันการกดค้างแล้วขึ้นเมนูบนมือถือ */
+            -webkit-touch-callout: none;
         }
         canvas {
             display: block;
             background: linear-gradient(180deg, #008065 0%, #00CE7C 100%);
+            width: 100%;
+            height: 100%;
         }
+        /* จัดการ Safe Area สำหรับ iPhone X ขึ้นไป */
+        #ui-layer {
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-top: env(safe-area-inset-top);
+        }
+        
         .glass-panel {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
@@ -73,8 +91,8 @@
             text-align: center;
         }
 
-        /* แสดงหน้าแจ้งเตือนเมื่อเป็นแนวตั้ง (Portrait) บนอุปกรณ์หน้าจอเล็ก */
-        @media screen and (orientation: portrait) and (max-width: 1024px) {
+        /* แสดงหน้าแจ้งเตือนเมื่อเป็นแนวตั้ง (Portrait) */
+        @media screen and (orientation: portrait) {
             #rotate-warning { display: flex; }
             #ui-layer, canvas { display: none !important; }
         }
@@ -82,6 +100,7 @@
 </head>
 <body>
 
+    <!-- หน้าจอแจ้งเตือนให้หมุนจอ -->
     <div id="rotate-warning">
         <div class="text-6xl mb-4">📱↻</div>
         <h2 class="text-2xl font-black uppercase">Please Rotate Your Device</h2>
@@ -91,6 +110,7 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="ui-layer" class="absolute inset-0 pointer-events-none p-4 md:p-6 flex flex-col justify-between">
+        <!-- Header: Score & Time -->
         <div class="flex justify-between items-start">
             <div id="scoreBox" class="glass-panel p-2 px-4 md:p-3 md:px-6 rounded-2xl shadow-lg">
                 <p class="text-[10px] uppercase tracking-[0.1em] text-[#008065] font-bold opacity-70 text-center">Score</p>
@@ -107,6 +127,7 @@
             </div>
         </div>
 
+        <!-- Start Screen -->
         <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-[#008065]/95 pointer-events-auto p-4 text-center overflow-y-auto">
             <div class="bg-white p-3 rounded-3xl mb-3 shadow-2xl floating shrink-0">
                  <img src="https://i.postimg.cc/gkVwzGf8/FRESHKET_LOGO-01_(1).png" alt="Freshket Logo" class="h-8 md:h-12 w-auto object-contain">
@@ -115,8 +136,10 @@
             <h1 class="text-lg md:text-3xl font-black text-white mb-2 tracking-tight uppercase leading-tight shrink-0">Your Trusted Solution<br>for Food Supplies</h1>
             <p class="text-white/70 mb-4 text-[10px] md:text-[11px] uppercase tracking-[0.25em] font-medium shrink-0">คัดสรรของสด ส่งความสบายใจให้ร้านอาหาร</p>
             
+            <!-- Cards Container -->
             <div class="flex flex-row gap-3 w-full max-w-4xl mb-6 items-stretch justify-center">
                 
+                <!-- Card 1: Rules -->
                 <div class="bg-white rounded-[24px] p-3 md:p-6 shadow-2xl flex-1 border-t-8 border-[#FF6600] flex flex-col max-w-[300px] md:max-w-none">
                     <h3 class="text-[#008065] font-black text-sm md:text-xl mb-2 md:mb-5 uppercase tracking-widest border-b-2 border-gray-100 pb-2 flex items-center justify-center gap-2">
                         <span>📦</span> กติกา
@@ -140,6 +163,7 @@
                     </div>
                 </div>
 
+                <!-- Card 2: Rank -->
                 <div class="bg-white rounded-[24px] p-3 md:p-6 shadow-2xl flex-1 border-t-8 border-[#F5CE3E] flex-col hidden md:flex">
                     <h3 class="text-[#008065] font-black text-sm md:text-xl mb-2 md:mb-5 uppercase tracking-widest border-b-2 border-gray-100 pb-2 flex items-center justify-center gap-2">
                         <span>🏆</span> เกณฑ์คะแนน
@@ -175,6 +199,7 @@
             </div>
         </div>
 
+        <!-- Game Over Screen -->
         <div id="game-over" class="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-md pointer-events-auto hidden">
             <div id="over-card" class="glass-panel p-6 md:p-10 rounded-[40px] text-center w-[90%] max-w-md shadow-2xl border-4 border-[#F5CE3E]">
                 <div id="game-over-icon" class="text-4xl md:text-5xl mb-2 md:mb-4">🏆</div>
@@ -267,18 +292,27 @@
     }
 
     function resize() {
+        // ใช้ innerWidth/Height เพื่อให้เต็มจอ browser จริงๆ (รวมพื้นที่ address bar ที่อาจซ่อนอยู่)
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        // ปรับตำแหน่งตัวละครให้สัมพันธ์กับความสูงจอ
+        
+        // ปรับตำแหน่งตัวละครให้สัมพันธ์กับความสูงจอ (Responsive)
         player.y = canvas.height - 140; 
-        if (canvas.height < 500) player.y = canvas.height - 100; // ปรับสำหรับมือถือแนวนอน
+        if (canvas.height < 500) player.y = canvas.height - 100; // ปรับสำหรับมือถือแนวนอนจอเล็ก
         
         player.x = (canvas.width / 2) - (player.width / 2);
         player.targetX = player.x; 
         player.lastX = player.x;
         initClouds();
     }
+    
+    // ฟังเหตุการณ์ resize และ orientationchange
     window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => {
+        // รอแป๊บนึงเพื่อให้ UI ของ browser ปรับเสร็จก่อนคำนวณขนาดใหม่
+        setTimeout(resize, 200);
+    });
+    
     resize();
 
     // --- Input Handling: Touch & Mouse ---
@@ -300,7 +334,7 @@
 
     // Touch Events
     canvas.addEventListener('touchstart', (e) => {
-        // Prevent default เพื่อไม่ให้ browser เลื่อนหน้าจอ
+        // Prevent default เพื่อไม่ให้ browser เลื่อนหน้าจอ (Elastic Scrolling)
         e.preventDefault(); 
         handleInputStart(e.touches[0].clientX);
     }, { passive: false });
@@ -360,9 +394,22 @@
         if (!gameActive) return;
         const rand = Math.random();
         let type, isGood, isBonus = false, size = 45;
+        
+        // สุ่มประเภทไอเทม
         if (rand < 0.08) { type = goodItems[Math.floor(Math.random() * goodItems.length)]; isGood = true; isBonus = true; size = 95; }
         else if (rand < 0.82) { type = goodItems[Math.floor(Math.random() * goodItems.length)]; isGood = true; }
         else { type = badItems[Math.floor(Math.random() * badItems.length)]; isGood = false; }
+
+        // --- ปรับปรุงตรรกะความเร็ว (Speed Logic) ---
+        let itemSpeed;
+        if (isBonus) {
+             // โบนัส (+50) : ปรับช้าลง 5% (8 * 0.95 = 7.6)
+             itemSpeed = 7.6; 
+        } else {
+             // ปกติ (+10) และ ของเสีย (-20) : ปรับเร็วขึ้น 5% (Base 2.625 + Range 3.15)
+             itemSpeed = 2.625 + Math.random() * 3.15; 
+        }
+
         items.push({
             x: Math.random() * (canvas.width - size),
             y: 70,
@@ -370,16 +417,23 @@
             isGood,
             isBonus,
             size,
-            speed: isBonus ? 4 : (4.5 + Math.random() * 5),
+            speed: itemSpeed, 
             rotation: 0,
             rotSpeed: (Math.random() - 0.5) * 0.12
         });
         
-        // Spawn rate: Slow down by 3%
-        setTimeout(spawnItem, Math.max(180, 720 - (score * 1.6)) * 1.03);
+        // Spawn rate
+        setTimeout(spawnItem, Math.max(180, 720 - (score * 1.6)));
     }
 
     function startGame() {
+        // ขอ Full Screen บน Android (iPhone จะไม่ทำงานแต่จะถูกจัดการด้วย CSS แทน)
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch((e) => {
+                // Ignore errors if fullscreen is blocked or not supported
+            });
+        }
+        
         startScreen.classList.add('hidden');
         gameActive = true;
         score = 0;
@@ -510,6 +564,11 @@
     }
 
     function endGame() {
+        // ออกจากโหมด Fullscreen (ถ้ามี) เมื่อจบเกม
+        if (document.exitFullscreen && document.fullscreenElement) {
+            document.exitFullscreen().catch(err => {});
+        }
+        
         gameActive = false;
         gameOverScreen.classList.remove('hidden');
         finalScoreDisplay.innerText = score;
