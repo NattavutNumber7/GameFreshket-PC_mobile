@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Freshket: Peace of Mind Delivery</title>
+    
+    <meta property="og:title" content="Freshket: Peace of Mind Delivery Game">
+    <meta property="og:description" content="เกมเก็บคะแนนคัดสรรของสด ส่งความสบายใจให้ร้านอาหาร มาดูกันว่าคุณจะได้ฉายาอะไร!">
+    <meta property="og:image" content="https://i.postimg.cc/gkVwzGf8/FRESHKET_LOGO-01_(1).png">
+    <meta property="og:url" content="https://www.freshket.co">
+    <meta property="og:type" content="website">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background-color: #F3EAE3;
+            /* ป้องกันการแตะซ้ำ, การซูม และการเลื่อนหน้าจอโดยไม่ตั้งใจ */
+            touch-action: none; 
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        canvas {
+            display: block;
+            background: linear-gradient(180deg, #008065 0%, #00CE7C 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+        .score-pop {
+            animation: scoreImpact 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-color: #FF6600;
+        }
+        @keyframes scoreImpact {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); box-shadow: 0 0 20px rgba(255, 102, 0, 0.6); color: #FF6600; }
+            100% { transform: scale(1); }
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            100% { transform: translate(-1px, -2px) rotate(-1deg); }
+        }
+        .shake {
+            animation: shake 0.2s infinite;
+        }
+
+        /* --- ส่วนแจ้งเตือนให้หมุนจอ (Rotate Warning) --- */
+        #rotate-warning {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #008065;
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        /* แสดงหน้าแจ้งเตือนเมื่อเป็นแนวตั้ง (Portrait) บนอุปกรณ์หน้าจอเล็ก */
+        @media screen and (orientation: portrait) and (max-width: 1024px) {
+            #rotate-warning { display: flex; }
+            #ui-layer, canvas { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="rotate-warning">
+        <div class="text-6xl mb-4">📱↻</div>
+        <h2 class="text-2xl font-black uppercase">Please Rotate Your Device</h2>
+        <p class="mt-2 text-sm opacity-80">กรุณาหมุนโทรศัพท์เป็นแนวนอนเพื่อเล่นเกม</p>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui-layer" class="absolute inset-0 pointer-events-none p-4 md:p-6 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+            <div id="scoreBox" class="glass-panel p-2 px-4 md:p-3 md:px-6 rounded-2xl shadow-lg">
+                <p class="text-[10px] uppercase tracking-[0.1em] text-[#008065] font-bold opacity-70 text-center">Score</p>
+                <div id="scoreText" class="text-2xl md:text-3xl font-black text-slate-800 leading-none text-center">0</div>
+            </div>
+            <div class="flex flex-col items-end gap-2 text-right">
+                <div class="glass-panel p-2 px-4 md:p-3 md:px-6 rounded-2xl shadow-lg">
+                    <p class="text-[10px] uppercase tracking-[0.1em] text-[#FF6600] font-bold opacity-70">Time</p>
+                    <span id="timeText" class="text-2xl md:text-3xl font-black text-slate-800 leading-none">30</span>
+                </div>
+                <button onclick="location.reload()" class="pointer-events-auto text-[10px] bg-white/20 hover:bg-white/40 text-white px-3 py-1.5 rounded-full border border-white/30 transition-all font-bold tracking-wider">
+                    RESTART ↻
+                </button>
+            </div>
+        </div>
+
+        <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-[#008065]/95 pointer-events-auto p-4 text-center overflow-y-auto">
+            <div class="bg-white p-3 rounded-3xl mb-3 shadow-2xl floating shrink-0">
+                 <img src="https://i.postimg.cc/gkVwzGf8/FRESHKET_LOGO-01_(1).png" alt="Freshket Logo" class="h-8 md:h-12 w-auto object-contain">
+            </div>
+            
+            <h1 class="text-lg md:text-3xl font-black text-white mb-2 tracking-tight uppercase leading-tight shrink-0">Your Trusted Solution<br>for Food Supplies</h1>
+            <p class="text-white/70 mb-4 text-[10px] md:text-[11px] uppercase tracking-[0.25em] font-medium shrink-0">คัดสรรของสด ส่งความสบายใจให้ร้านอาหาร</p>
+            
+            <div class="flex flex-row gap-3 w-full max-w-4xl mb-6 items-stretch justify-center">
+                
+                <div class="bg-white rounded-[24px] p-3 md:p-6 shadow-2xl flex-1 border-t-8 border-[#FF6600] flex flex-col max-w-[300px] md:max-w-none">
+                    <h3 class="text-[#008065] font-black text-sm md:text-xl mb-2 md:mb-5 uppercase tracking-widest border-b-2 border-gray-100 pb-2 flex items-center justify-center gap-2">
+                        <span>📦</span> กติกา
+                    </h3>
+                    <div class="grid grid-cols-3 gap-2 flex-1 items-center">
+                        <div class="bg-gray-50 p-2 rounded-xl border border-gray-100 flex flex-col justify-center">
+                            <span class="text-xl md:text-3xl block mb-1">🥬🥩</span>
+                            <p class="text-[8px] md:text-[14px] text-gray-400 font-bold uppercase mb-0">สด</p>
+                            <p class="text-[#008065] font-black text-sm md:text-2xl">+10</p>
+                        </div>
+                        <div class="bg-yellow-50 p-2 rounded-xl border border-yellow-100 flex flex-col justify-center">
+                            <span class="text-xl md:text-3xl block mb-1">⭐</span>
+                            <p class="text-[8px] md:text-[14px] text-yellow-600 font-bold uppercase mb-0">ยักษ์</p>
+                            <p class="text-yellow-500 font-black text-sm md:text-2xl">+50</p>
+                        </div>
+                        <div class="bg-red-50 p-2 rounded-xl border border-red-100 flex flex-col justify-center">
+                            <span class="text-xl md:text-3xl block mb-1">💩🐛</span>
+                            <p class="text-[8px] md:text-[14px] text-red-400 font-bold uppercase mb-0">ห้าม</p>
+                            <p class="text-red-500 font-black text-sm md:text-2xl">-20</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[24px] p-3 md:p-6 shadow-2xl flex-1 border-t-8 border-[#F5CE3E] flex-col hidden md:flex">
+                    <h3 class="text-[#008065] font-black text-sm md:text-xl mb-2 md:mb-5 uppercase tracking-widest border-b-2 border-gray-100 pb-2 flex items-center justify-center gap-2">
+                        <span>🏆</span> เกณฑ์คะแนน
+                    </h3>
+                    <div class="space-y-2 flex-1 text-[10px] md:text-base"> 
+                        <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100">
+                            <span class="font-bold text-gray-600">🐣 มือใหม่</span>
+                            <span class="font-black text-[#008065]">0-150</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-green-50 p-2 rounded-lg border border-green-100">
+                            <span class="font-bold text-[#008065]">🥦 มือโปร</span>
+                            <span class="font-black text-[#008065]">151-350</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-orange-50 p-2 rounded-lg border border-orange-100">
+                            <span class="font-bold text-[#FF6600]">✨ VIBE</span>
+                            <span class="font-black text-[#FF6600]">351-550</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-yellow-50 p-2 rounded-lg border border-yellow-200">
+                            <span class="font-bold text-yellow-700">🥇 LEGEND</span>
+                            <span class="font-black text-yellow-700">551+</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="bg-[#FF6600] hover:bg-[#e55c00] text-white text-lg md:text-xl font-black px-12 py-3 md:px-16 md:py-5 rounded-full shadow-[0_6px_0_rgb(180,70,0)] active:shadow-none active:translate-y-[4px] transition-all mb-4 shrink-0 tracking-wider">
+                START MISSION!
+            </button>
+            
+            <div class="flex gap-4 md:gap-8 text-white/40 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] shrink-0">
+                <span>📱 Drag / Touch</span>
+                <span>💻 Mouse / Keys</span>
+            </div>
+        </div>
+
+        <div id="game-over" class="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-md pointer-events-auto hidden">
+            <div id="over-card" class="glass-panel p-6 md:p-10 rounded-[40px] text-center w-[90%] max-w-md shadow-2xl border-4 border-[#F5CE3E]">
+                <div id="game-over-icon" class="text-4xl md:text-5xl mb-2 md:mb-4">🏆</div>
+                <h2 id="status-title" class="text-xl md:text-2xl font-black text-[#008065] mb-1 uppercase tracking-tight leading-tight">Your Trusted Delivery<br>Success!</h2>
+                
+                <div class="relative inline-block my-4 md:my-8">
+                    <div class="text-6xl md:text-8xl font-black text-[#FF6600] tracking-tighter" id="finalScore">0</div>
+                    <div class="absolute -top-2 -right-6 rotate-12 bg-[#F5CE3E] text-black text-[10px] font-black px-2 py-1 rounded">PTS</div>
+                </div>
+
+                <div class="bg-white/50 p-4 md:p-5 rounded-3xl mb-6 md:mb-8 border-2 border-dashed border-slate-300">
+                    <p class="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">ฉายาของคุณคือ</p>
+                    <p id="rankText" class="font-black text-lg md:text-xl text-[#008065] tracking-tight">เชฟมือโปร!</p>
+                </div>
+
+                <button onclick="location.reload()" class="w-full bg-[#FF6600] text-white font-black py-4 md:py-5 rounded-2xl shadow-xl hover:bg-[#e55c00] transition-colors flex items-center justify-center gap-2 tracking-wide">
+                    <span class="text-xl md:text-2xl">↻</span> RESTART MISSION
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreText = document.getElementById('scoreText');
+    const timeText = document.getElementById('timeText');
+    const startScreen = document.getElementById('start-screen');
+    const gameOverScreen = document.getElementById('game-over');
+    const overCard = document.getElementById('over-card');
+    const finalScoreDisplay = document.getElementById('finalScore');
+    const rankText = document.getElementById('rankText');
+    const statusTitle = document.getElementById('status-title');
+    const gameOverIcon = document.getElementById('game-over-icon');
+    const scoreBox = document.getElementById('scoreBox');
+
+    const logoImg = new Image();
+    logoImg.src = 'https://i.postimg.cc/gkVwzGf8/FRESHKET_LOGO-01_(1).png';
+
+    let score = 0;
+    let timeLeft = 30;
+    let gameActive = false;
+    let items = [];
+    let particles = [];
+    let fireworks = [];
+    let clouds = [];
+    let floatingTexts = [];
+    let isDragging = false; 
+    
+    let player = {
+        x: 0,
+        y: 0,
+        targetX: 0, 
+        lastX: 0,
+        width: 120,
+        height: 80,
+        tilt: 0,
+        speed: 16
+    };
+
+    const keys = { ArrowLeft: false, ArrowRight: false };
+
+    function initClouds() {
+        clouds = [];
+        const cloudCount = 8;
+        for (let i = 0; i < cloudCount; i++) {
+            clouds.push({
+                x: (canvas.width / cloudCount) * i + (Math.random() * 50),
+                baseY: Math.random() * 40 + 20,
+                y: 0,
+                w: Math.random() * 80 + 100,
+                pulseOffset: Math.random() * Math.PI * 2,
+                pulseSpeed: 0.005 + Math.random() * 0.005,
+                opacity: Math.random() * 0.15 + 0.35
+            });
+        }
+    }
+
+    function drawCloud(c) {
+        c.y = c.baseY + Math.sin(Date.now() * c.pulseSpeed + c.pulseOffset) * 4;
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${c.opacity})`;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.w * 0.3, 0, Math.PI * 2);
+        ctx.arc(c.x + c.w * 0.25, c.y - c.w * 0.1, c.w * 0.3, 0, Math.PI * 2);
+        ctx.arc(c.x + c.w * 0.5, c.y, c.w * 0.3, 0, Math.PI * 2);
+        ctx.arc(c.x + c.w * 0.25, c.y + c.w * 0.1, c.w * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        // ปรับตำแหน่งตัวละครให้สัมพันธ์กับความสูงจอ
+        player.y = canvas.height - 140; 
+        if (canvas.height < 500) player.y = canvas.height - 100; // ปรับสำหรับมือถือแนวนอน
+        
+        player.x = (canvas.width / 2) - (player.width / 2);
+        player.targetX = player.x; 
+        player.lastX = player.x;
+        initClouds();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // --- Input Handling: Touch & Mouse ---
+    
+    function handleInputStart(clientX) {
+        isDragging = true;
+        movePlayer(clientX);
+    }
+
+    function handleInputMove(clientX) {
+        if (isDragging) {
+            movePlayer(clientX);
+        }
+    }
+
+    function handleInputEnd() {
+        isDragging = false;
+    }
+
+    // Touch Events
+    canvas.addEventListener('touchstart', (e) => {
+        // Prevent default เพื่อไม่ให้ browser เลื่อนหน้าจอ
+        e.preventDefault(); 
+        handleInputStart(e.touches[0].clientX);
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault(); 
+        handleInputMove(e.touches[0].clientX);
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', handleInputEnd);
+
+    // Mouse Events
+    canvas.addEventListener('mousedown', (e) => handleInputStart(e.clientX));
+    window.addEventListener('mousemove', (e) => handleInputMove(e.clientX)); // Listen on window for smoother drag out
+    window.addEventListener('mouseup', handleInputEnd);
+    
+    // Keyboard Events
+    window.addEventListener('keydown', (e) => { if (keys.hasOwnProperty(e.code)) keys[e.code] = true; });
+    window.addEventListener('keyup', (e) => { if (keys.hasOwnProperty(e.code)) keys[e.code] = false; });
+
+    function movePlayer(clientX) {
+        player.targetX = clientX - (player.width / 2);
+    }
+
+    const goodItems = ['🥬', '🥩', '🍅', '🥦', '🍤', '🥚', '🌽'];
+    const badItems = ['🦠', '🥀', '💩', '🐛']; 
+
+    function createParticle(x, y, color) {
+        for (let i = 0; i < 12; i++) {
+            particles.push({
+                x, y,
+                vx: (Math.random() - 0.5) * 12,
+                vy: (Math.random() - 0.5) * 12,
+                life: 1,
+                color: color || '#FFFFFF'
+            });
+        }
+    }
+
+    function createFirework() {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * (canvas.height * 0.6);
+        const colors = ['#00CE7C', '#FF6600', '#F5CE3E', '#FFFFFF'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        for (let i = 0; i < 30; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 5;
+            fireworks.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1, color });
+        }
+    }
+
+    function createFloatingText(x, y, text, color) {
+        floatingTexts.push({ x, y, text, color, life: 1, vy: -3 });
+    }
+
+    function spawnItem() {
+        if (!gameActive) return;
+        const rand = Math.random();
+        let type, isGood, isBonus = false, size = 45;
+        if (rand < 0.08) { type = goodItems[Math.floor(Math.random() * goodItems.length)]; isGood = true; isBonus = true; size = 95; }
+        else if (rand < 0.82) { type = goodItems[Math.floor(Math.random() * goodItems.length)]; isGood = true; }
+        else { type = badItems[Math.floor(Math.random() * badItems.length)]; isGood = false; }
+        items.push({
+            x: Math.random() * (canvas.width - size),
+            y: 70,
+            text: type,
+            isGood,
+            isBonus,
+            size,
+            speed: isBonus ? 4 : (4.5 + Math.random() * 5),
+            rotation: 0,
+            rotSpeed: (Math.random() - 0.5) * 0.12
+        });
+        
+        // Spawn rate: Slow down by 3%
+        setTimeout(spawnItem, Math.max(180, 720 - (score * 1.6)) * 1.03);
+    }
+
+    function startGame() {
+        startScreen.classList.add('hidden');
+        gameActive = true;
+        score = 0;
+        timeLeft = 30;
+        items = [];
+        particles = [];
+        fireworks = [];
+        spawnItem();
+        player.lastX = player.x;
+        player.targetX = player.x;
+        
+        const timerInterval = setInterval(() => {
+            if (!gameActive) { clearInterval(timerInterval); return; }
+            timeLeft--;
+            timeText.innerText = timeLeft;
+            if (timeLeft <= 0) endGame();
+        }, 1000);
+        requestAnimationFrame(update);
+    }
+
+    function update() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        clouds.forEach(drawCloud);
+
+        if (gameActive) {
+            // Keyboard control logic
+            if (keys.ArrowLeft) player.targetX -= player.speed;
+            if (keys.ArrowRight) player.targetX += player.speed;
+            
+            // Boundary checks
+            if (player.targetX < 0) player.targetX = 0;
+            if (player.targetX > canvas.width - player.width) player.targetX = canvas.width - player.width;
+
+            // Lerp movement
+            player.x += (player.targetX - player.x) * 0.2;
+            player.tilt = (player.x - player.lastX) * 0.04;
+            
+            if (player.tilt > 0.8) player.tilt = 0.8;
+            if (player.tilt < -0.8) player.tilt = -0.8;
+
+            player.lastX = player.x;
+
+            // Items logic
+            for (let i = items.length - 1; i >= 0; i--) {
+                let item = items[i];
+                item.y += item.speed;
+                item.rotation += item.rotSpeed;
+                ctx.save();
+                ctx.translate(item.x + item.size/2, item.y + item.size/2);
+                ctx.rotate(item.rotation);
+                if (item.isBonus) { ctx.shadowBlur = 25; ctx.shadowColor = '#F5CE3E'; }
+                ctx.font = `${item.size}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(item.text, 0, 0);
+                ctx.restore();
+
+                // Hit detection
+                if (item.y + item.size > player.y && item.y < player.y + player.height && item.x + item.size > player.x && item.x < player.x + player.width) {
+                    if (item.isGood) {
+                        let pts = item.isBonus ? 50 : 10;
+                        score += pts;
+                        createParticle(item.x + item.size/2, item.y + item.size/2, item.isBonus ? '#F5CE3E' : '#FFFFFF');
+                        createFloatingText(item.x + item.size/2, item.y, `+${pts}`, item.isBonus ? '#F5CE3E' : '#FFFFFF');
+                        scoreBox.classList.remove('score-pop');
+                        void scoreBox.offsetWidth;
+                        scoreBox.classList.add('score-pop');
+                    } else {
+                        score = Math.max(0, score - 20);
+                        createParticle(item.x + item.size/2, item.y + item.size/2, '#444444');
+                        createFloatingText(item.x + item.size/2, item.y, `-20`, '#FF0000');
+                    }
+                    scoreText.innerText = score;
+                    items.splice(i, 1);
+                    continue;
+                }
+                if (item.y > canvas.height) items.splice(i, 1);
+            }
+
+            // Draw Player
+            ctx.save();
+            ctx.translate(player.x + player.width/2, player.y + player.height/2);
+            ctx.rotate(player.tilt);
+            ctx.fillStyle = '#008065';
+            roundRect(ctx, -player.width/2, -player.height/2, player.width, player.height, 18, true);
+            
+            ctx.filter = 'brightness(0) invert(1)';
+            const logoW = player.width * 0.7;
+            const logoH = logoImg.height * (logoW / logoImg.width);
+            ctx.drawImage(logoImg, -logoW/2, -logoH/2, logoW, logoH);
+            ctx.filter = 'none';
+
+            ctx.restore();
+        }
+
+        // Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy; p.life -= 0.025;
+            if (p.life <= 0) { particles.splice(i, 1); continue; }
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.life;
+            ctx.beginPath(); ctx.arc(p.x, p.y, 4 * p.life, 0, Math.PI*2); ctx.fill();
+        }
+
+        // Fireworks
+        for (let i = fireworks.length - 1; i >= 0; i--) {
+            let f = fireworks[i];
+            f.x += f.vx; f.y += f.vy; f.vy += 0.05; f.life -= 0.015;
+            if (f.life <= 0) { fireworks.splice(i, 1); continue; }
+            ctx.fillStyle = f.color;
+            ctx.globalAlpha = f.life;
+            ctx.beginPath(); ctx.arc(f.x, f.y, 3 * f.life, 0, Math.PI*2); ctx.fill();
+        }
+
+        // Floating Text
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            let f = floatingTexts[i];
+            f.y += f.vy; f.life -= 0.02;
+            if (f.life <= 0) { floatingTexts.splice(i, 1); continue; }
+            ctx.fillStyle = f.color;
+            ctx.globalAlpha = f.life;
+            ctx.font = '800 28px Kanit';
+            ctx.fillText(f.text, f.x, f.y);
+        }
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(update);
+    }
+
+    function endGame() {
+        gameActive = false;
+        gameOverScreen.classList.remove('hidden');
+        finalScoreDisplay.innerText = score;
+        let rank = "";
+        if (score <= 150) {
+            rank = "มือใหม่หัดสั่ง... สู้เค้าวัยรุ่น! 🐣";
+            statusTitle.innerText = "OOPS! TRY HARDER";
+            gameOverIcon.innerText = "🥗";
+            overCard.classList.add('shake');
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+        } else if (score <= 350) {
+            rank = "เชฟมือโปร... ส่งความสบายใจรัวๆ 🥦";
+            statusTitle.innerText = "MISSION COMPLETE!";
+            gameOverIcon.innerText = "👨‍🍳";
+        } else if (score <= 550) {
+            rank = "VIBE ARCHITECT! ตัวตึง Freshket ✨";
+            statusTitle.innerText = "FANTASTIC WORK!";
+            gameOverIcon.innerText = "👑";
+            startFireworks(3);
+        } else {
+            rank = "LEGENDARY PARTNER! ผู้กอบกู้ครัวไทย 🥇";
+            statusTitle.innerText = "UNBELIEVABLE VIBE!";
+            gameOverIcon.innerText = "🚀";
+            startFireworks(8);
+        }
+        rankText.innerText = rank;
+    }
+
+    function startFireworks(count) { for(let i=0; i<count; i++) { setTimeout(createFirework, i * 400); } }
+
+    function roundRect(ctx, x, y, width, height, radius, fill) {
+        if (typeof radius === 'number') { radius = {tl: radius, tr: radius, bl: radius, br: radius}; }
+        ctx.beginPath();
+        ctx.moveTo(x + radius.tl, y);
+        ctx.lineTo(x + width - radius.tr, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+        ctx.lineTo(x + width, y + height - radius.br);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+        ctx.lineTo(x + radius.bl, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+        ctx.lineTo(x, y + radius.tl);
+        ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+        ctx.closePath();
+        if (fill) ctx.fill();
+    }
+</script>
+</body>
+</html>
